@@ -67,6 +67,9 @@ Available options:
   -o FILE          Write processed text to FILE
                    Stdout will be used if not supplied
 
+  --multi-cipher   Specify the number of ciphers to be performed
+                   must have multiple entries for -c and -k if --multi-cipher != 1
+
   -c CIPHER        Specify the cipher to be used to perform the encryption/decryption
                    CIPHER can be caesar or playfair - caesar is the default
 

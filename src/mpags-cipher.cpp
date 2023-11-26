@@ -4,6 +4,8 @@
 #include "PlayfairCipher.hpp"
 #include "ProcessCommandLine.hpp"
 #include "TransformChar.hpp"
+#include "VigenereCipher.hpp"
+#include "CipherFactory.hpp"
 
 #include <cctype>
 #include <fstream>
@@ -42,8 +44,10 @@ int main(int argc, char* argv[])
             << "  -o FILE          Write processed text to FILE\n"
             << "                   Stdout will be used if not supplied\n\n"
             << "                   Stdout will be used if not supplied\n\n"
+            << "  --multi-cipher   Specify the number of ciphers to be applied in a row \n"
+            << "                   Must have multiple entries for -c and -k \n\n"
             << "  -c CIPHER        Specify the cipher to be used to perform the encryption/decryption\n"
-            << "                   CIPHER can be caesar or playfair - caesar is the default\n\n"
+            << "                   CIPHER can be caesar, playfair or vigenere - caesar is the default\n\n"
             << "  -k KEY           Specify the cipher KEY\n"
             << "                   A null key, i.e. no encryption, is used if not supplied\n\n"
             << "  --encrypt        Will use the cipher to encrypt the input text (default behaviour)\n\n"
@@ -90,20 +94,17 @@ int main(int argc, char* argv[])
     }
 
     std::string outputText;
-
-    switch (settings.cipherType[0]) {
-        case CipherType::Caesar: {
-            // Run the Caesar cipher (using the specified key and encrypt/decrypt flag) on the input text
-            CaesarCipher cipher{settings.cipherKey[0]};
-            outputText = cipher.applyCipher(inputText, settings.cipherMode);
-            break;
-        }
-        case CipherType::Playfair: {
-            PlayfairCipher cipher{settings.cipherKey[0]};
-            outputText = cipher.applyCipher(inputText, settings.cipherMode);
-            break;
+    
+    //create an instance of a cipher given the command line arguments of type and key
+    for(std::size_t n{0};n<settings.cipherType.size();n++){
+        auto aCipher = CipherFactory::makeCipher(settings.cipherType[n],settings.cipherKey[n]);
+        if(n==0){
+            outputText = aCipher->applyCipher(inputText,settings.cipherMode);
+        } else {
+            outputText = aCipher->applyCipher(outputText,settings.cipherMode);
         }
     }
+
 
     // Output the encrypted/decrypted text to stdout/file
     if (!settings.outputFile.empty()) {
