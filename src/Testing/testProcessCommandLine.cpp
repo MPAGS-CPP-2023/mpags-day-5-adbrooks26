@@ -141,3 +141,26 @@ TEST_CASE("Cipher type declared with Playfair cipher")
     REQUIRE(settings.cipherType.size() == 1);
     REQUIRE(settings.cipherType[0] == CipherType::Playfair);
 }
+
+TEST_CASE("Cipher type declared with Vigenere cipher")
+{
+    ProgramSettings settings{false, false, "", "", {}, {}, CipherMode::Encrypt};
+    const std::vector<std::string> cmdLine{"mpags-cipher", "-c", "vigenere"};
+    const bool res{processCommandLine(cmdLine, settings)};
+
+    REQUIRE(res);
+    REQUIRE(settings.cipherType.size() == 1);
+    REQUIRE(settings.cipherType[0] == CipherType::Playfair);
+}
+
+TEST_CASE("Cipher type declared with Vigenere cipher and 2 multi ciphers")
+{
+    ProgramSettings settings{false, false, "", "", {}, {}, CipherMode::Encrypt};
+    const std::vector<std::string> cmdLine{"mpags-cipher", "-c", "vigenere", "Caesar","--multi-cipher","2"};
+    const bool res{processCommandLine(cmdLine, settings)};
+
+    REQUIRE(res);
+    REQUIRE(settings.cipherType.size() == 1);
+    REQUIRE(settings.cipherType[0] == CipherType::Vigenere);
+    REQUIRE(settings.cipherType[1] == CipherType::Caesar);
+}

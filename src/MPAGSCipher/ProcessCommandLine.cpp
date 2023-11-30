@@ -11,7 +11,7 @@ bool processCommandLine(const std::vector<std::string>& cmdLineArgs,
     bool processStatus{true};
 
     // Default to expecting information about one cipher
-    const std::size_t nExpectedCiphers{1};
+    std::size_t nExpectedCiphers{1};
     settings.cipherType.reserve(nExpectedCiphers);
     settings.cipherKey.reserve(nExpectedCiphers);
 
@@ -66,8 +66,10 @@ bool processCommandLine(const std::vector<std::string>& cmdLineArgs,
                 break;
             } else {
                 // Got the key, so assign the value and advance past it
-                settings.cipherKey.push_back(cmdLineArgs[i + 1]);
-                ++i;
+                for(std::size_t n{0};n<nExpectedCiphers;n++){
+                    settings.cipherKey.push_back(cmdLineArgs[i + n +1]);
+                }
+                i+=nExpectedCiphers;
             }
         } else if (cmdLineArgs[i] == "--encrypt") {
             settings.cipherMode = CipherMode::Encrypt;
@@ -84,16 +86,33 @@ bool processCommandLine(const std::vector<std::string>& cmdLineArgs,
                 break;
             } else {
                 // Got the cipher name, so assign the value and advance past it
-                if (cmdLineArgs[i + 1] == "caesar") {
-                    settings.cipherType.push_back(CipherType::Caesar);
-                } else if (cmdLineArgs[i + 1] == "playfair") {
-                    settings.cipherType.push_back(CipherType::Playfair);
-                } else {
-                    std::cerr << "[error] unknown cipher '"
-                              << cmdLineArgs[i + 1] << "'\n";
-                    processStatus = false;
-                    break;
+                for(std::size_t n{0};n<nExpectedCiphers;n++){
+                    if (cmdLineArgs[i + n + 1] == "caesar") {
+                        settings.cipherType.push_back(CipherType::Caesar);
+                    } else if (cmdLineArgs[i + n + 1] == "playfair") {
+                        settings.cipherType.push_back(CipherType::Playfair);
+                    } else if (cmdLineArgs[i+n+1] == "vigenere") {
+                        settings.cipherType.push_back(CipherType::Vigenere);
+                    } else {
+                        std::cerr << "[error] unknown cipher '"
+                                << cmdLineArgs[i + n + 1] << "'\n";
+                        processStatus = false;
+                        break;
+                    }
                 }
+
+                i += nExpectedCiphers;
+            }
+        } else if (cmdLineArgs[i] == "--multi-cipher") {
+            if (i == nCmdLineArgs - 1) {
+                std::cerr << "[error] -c requires an integer argument"
+                          << std::endl;
+                // Set the flag to indicate the error and terminate the loop
+                processStatus = false;
+                break;
+            } else {
+                // Got the number of ciphers to run in sequence, so assign the value and advance past it
+                nExpectedCiphers = std::stoi(cmdLineArgs[i+1]);
                 ++i;
             }
         } else {
